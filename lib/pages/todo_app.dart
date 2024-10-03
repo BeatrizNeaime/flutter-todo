@@ -16,6 +16,8 @@ class _ToDoAppState extends State<ToDoApp> {
   TodoDatabase todoDatabase = TodoDatabase();
   final _controller = TextEditingController();
 
+  bool flow = true;
+
   @override
   void initState() {
     if (_box.get('TODOLIST') == null) {
@@ -43,6 +45,19 @@ class _ToDoAppState extends State<ToDoApp> {
     });
   }
 
+  void orderTasks() {
+    if (flow) {
+      todoDatabase.todoList.sort(
+          (a, b) => a['title'].toString().compareTo(b['title'].toString()));
+    } else {
+      todoDatabase.todoList.sort(
+          (a, b) => b['title'].toString().compareTo(a['title'].toString()));
+    }
+    setState(() {
+      flow = !flow;
+    });
+  }
+
   void saveNewTask() {
     setState(() {
       todoDatabase.addData(_controller.text);
@@ -67,39 +82,74 @@ class _ToDoAppState extends State<ToDoApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.blueGrey[200],
-        appBar: AppBar(
-          backgroundColor: Colors.blueGrey,
-          title: const Center(
-            child: Text(
-              "To Do",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontFamily: 'OpenSans',
-              ),
+      backgroundColor: Colors.blueGrey[200],
+      appBar: AppBar(
+        backgroundColor: Colors.blueGrey,
+        title: const Center(
+          child: Text(
+            "To Do",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontFamily: 'OpenSans',
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: createNewTask,
-          shape: const CircleBorder(),
-          child: const Icon(
-            Icons.add,
-            color: Colors.blueGrey,
-          ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: createNewTask,
+        shape: const CircleBorder(),
+        backgroundColor: Colors.white,
+        child: const Icon(
+          Icons.add,
+          color: Colors.blueGrey,
         ),
-        body: ListView.builder(
-          padding: const EdgeInsets.only(top: 10.0),
-          itemCount: todoDatabase.todoList.length,
-          itemBuilder: (context, index) {
-            return ToDoTile(
-              title: todoDatabase.todoList[index]['title'],
-              completed: todoDatabase.todoList[index]['isDone'],
-              onChanged: (value) => checkboxChanged(value, index),
-              onDeleted: (context) => deleteTask(index),
-            );
-          },
-        ));
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'My Tasks',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: orderTasks,
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(Colors.white54),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.sort_by_alpha_outlined,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.only(top: 10.0),
+              itemCount: todoDatabase.todoList.length,
+              itemBuilder: (context, index) {
+                return ToDoTile(
+                  title: todoDatabase.todoList[index]['title'],
+                  completed: todoDatabase.todoList[index]['isDone'],
+                  onChanged: (value) => checkboxChanged(value, index),
+                  onDeleted: (context) => deleteTask(index),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
